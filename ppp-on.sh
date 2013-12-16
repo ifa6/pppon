@@ -32,7 +32,8 @@ hay_un_chat () {
 
 abort () {
     killall pppd 2>/dev/null && sleep 1
-    off
+    rm -f $RUNFILE 2>/dev/null
+    killall ppp-on.sh 2>/dev/null && sleep 1
     exit 1
 }
 
