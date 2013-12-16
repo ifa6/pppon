@@ -30,10 +30,17 @@ hay_un_chat () {
     (( ${#x} > 0 ))
 }
 
+abort () {
+    killall pppd 2>/dev/null && sleep 1
+    off
+    exit 1
+}
 
 # --
 
-hay_un_script && exit 0
+(( $# > 0 )) && abort
+
+hay_un_script && exit 2
 
 on
 until hay_conexion
@@ -45,4 +52,3 @@ done
 off
 
 exit 0
-
