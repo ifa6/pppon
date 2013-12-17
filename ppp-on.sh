@@ -31,15 +31,16 @@ hay_un_chat () {
 }
 
 abort () {
-    killall pppd 2>/dev/null && sleep 1
-    rm -f $RUNFILE 2>/dev/null
-    killall ppp-on.sh 2>/dev/null && sleep 1
-    exit 1
+    rm -f $RUNFILE
+    for prog in chat pppd ppp-on.sh
+    do
+        killall $prog
+    done
 }
 
 # --
 
-(( $# > 0 )) && abort
+(( $# > 0 )) && abort 2>/dev/null
 
 hay_un_script && exit 2
 
