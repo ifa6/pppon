@@ -1,7 +1,6 @@
-#! /bin/bash
+#! /bin/bash -x
 
-LOCAL=${HOME}/.local
-RUNDIR=${LOCAL}/var/run
+RUNDIR=${HOME}/.local/var/run
 RUNFILE=${RUNDIR}/ppp-on.sh_is_running
 
 on () {
@@ -13,9 +12,7 @@ off () {
 }
 
 hay_un_script () {
-    local x
-    x=`ls $RUNDIR | grep ''$RUNFILE''`
-    (( ${#x} > 0 ))
+    [[ -e $RUNFILE ]]
 }
 
 hay_conexion () {
@@ -36,19 +33,19 @@ abort () {
     do
         killall $prog
     done
-}
+} 2>/dev/null
 
 # --
 
-(( $# > 0 )) && abort 2>/dev/null
+(( $# > 0 )) && abort
 
 hay_un_script && exit 2
 
 on
 until hay_conexion
 do
-    killall pppd && sleep 1
-    pon provider && sleep 1
+    killall pppd 2>/dev/null && sleep 1
+    pon provider 2>/dev/null && sleep 1
     while hay_un_chat; do sleep 5; done
 done
 off
