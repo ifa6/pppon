@@ -1,18 +1,18 @@
 #! /bin/bash -x
 
-RUNDIR=${HOME}/.local/var/run
-RUNFILE=${RUNDIR}/ppp-on.sh_is_running
+TESTDIR=${HOME}/.local/var/run
+TESTFILE=${TESTDIR}/ppp-on.sh_is_running
 
 on () {
-    touch $RUNFILE 2>/dev/null
+    touch $TESTFILE 2>/dev/null
 }
 
 off () {
-    rm -f $RUNFILE 2>/dev/null
+    rm -f $TESTFILE 2>/dev/null
 }
 
 hay_un_script () {
-    [[ -e $RUNFILE ]]
+    [[ -e $TESTFILE ]]
 }
 
 hay_conexion () {
@@ -28,7 +28,7 @@ hay_un_chat () {
 }
 
 abort () {
-    rm -f $RUNFILE
+    rm -f $TESTFILE
     for prog in chat pppd ppp-on.sh
     do
         killall $prog
@@ -37,17 +37,30 @@ abort () {
 
 # --
 
-(( $# > 0 )) && abort
+name=`basename $0`
 
-hay_un_script && exit 2
+case $name in
 
-on
-until hay_conexion
-do
-    killall pppd 2>/dev/null && sleep 1
-    pon provider 2>/dev/null && sleep 1
-    while hay_un_chat; do sleep 5; done
-done
-off
+    "pppon")
+
+        hay_un_script && exit 1
+
+        on
+        until hay_conexion
+        do
+            killall pppd 2>/dev/null && sleep 1
+            pon provider 2>/dev/null && sleep 1
+            while hay_un_chat; do sleep 5; done
+        done
+        off
+        ;;
+
+    "pppoff") abort ;;
+
+    *) echo "el script sólo puede ser invocado como 'pppon' o como 'pppoff'"
+       exit -1
+       ;;
+
+esac
 
 exit 0
