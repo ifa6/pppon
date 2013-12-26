@@ -1,23 +1,45 @@
 #! /bin/bash -x
 
-TESTDIR=${HOME}/.local/var/run
-TESTFILE=${TESTDIR}/ppp-on.sh_is_running
+PIDDIR=${HOME}/.local/var/run
+PIDFILE=${PIDDIR}/ppp-on.sh_is_running
+
+MODEM_OFFLINE="Modem not responding"
+MODEM_BUSY="Device or resource busy"
+
+OK=0
+SCRIPT=1
+OFFLINE=2
+BUSY=3
+ABORT=4
+NAME_ERROR=-1
 
 on () {
-    touch $TESTFILE 2>/dev/null
+    touch $PIDFILE 2>/dev/null
 }
 
 off () {
-    rm -f $TESTFILE 2>/dev/null
+    rm -f $PIDFILE 2>/dev/null
 }
 
 hay_un_script () {
-    [[ -e $TESTFILE ]]
+    [[ -e $PIDFILE ]]
 }
 
 hay_conexion () {
     local x
     x=`/sbin/ifconfig ppp0 2>/dev/null`
+    (( ${#x} > 0 ))
+}
+
+modem_offline () {
+    local x
+    x=`wvdial 2>&1 | grep "$MODEM_OFFLINE"`
+    (( ${#x} > 0 ))
+}
+
+modem_ocupado () {
+    local x
+    x=`wvdial 2>&1 | grep "$MODEM_BUSY"`
     (( ${#x} > 0 ))
 }
 
@@ -42,7 +64,9 @@ case $name in
 
     "pppon")
 
-        hay_un_script && exit 1
+        hay_un_script && exit $SCRIPT
+        modem_offline && exit $OFFLINE
+        modem_ocupado && exit $BUSY
 
         on
         until hay_conexion
@@ -57,15 +81,15 @@ case $name in
     "pppoff")
 
         off
-        hay_un_chat && { abort; exit 2; }
+        hay_un_chat && { abort; exit $ABORT; }
         hay_conexion && poff -a
         killall pppon
         ;;
 
     *) echo "el script sólo puede ser invocado como 'pppon' o como 'pppoff'"
-       exit -1
+       exit $NAME_ERROR
        ;;
 
 esac
 
-exit 0
+exit $OK
