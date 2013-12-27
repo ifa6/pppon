@@ -1,17 +1,18 @@
 #! /bin/bash -x
 
-PIDDIR=${HOME}/.local/var/run
-PIDFILE=${PIDDIR}/ppp-on.sh_is_running
-
-MODEM_OFFLINE="Modem not responding"
-MODEM_BUSY="Device or resource busy"
-
+# Códigos de terminación
 OK=0
 SCRIPT=1
 OFFLINE=2
 BUSY=3
 ABORT=4
 NAME_ERROR=-1
+
+# == FUNCIONES ==
+
+# Comprobar si se está ejecutando un script
+PIDDIR=${HOME}/.local/var/run
+PIDFILE=${PIDDIR}/ppp-on.sh_is_running
 
 on () {
     touch $PIDFILE 2>/dev/null
@@ -25,11 +26,10 @@ hay_un_script () {
     [[ -e $PIDFILE ]]
 }
 
-hay_conexion () {
-    local x
-    x=`/sbin/ifconfig ppp0 2>/dev/null`
-    (( ${#x} > 0 ))
-}
+# -- MODEM --
+# Los mensajes que emite wvdial cuando tantea el estado del modem
+MODEM_OFFLINE="Modem not responding"
+MODEM_BUSY="Device or resource busy"
 
 modem_offline () {
     local x
@@ -42,13 +42,21 @@ modem_ocupado () {
     x=`wvdial 2>&1 | grep "$MODEM_BUSY"`
     (( ${#x} > 0 ))
 }
+# --
+# Saber si hay una conexión en curso o si hay un intento de conectar.
+hay_conexion () {
+    local x
+    x=`/sbin/ifconfig ppp0 2>/dev/null`
+    (( ${#x} > 0 ))
+}
 
 hay_un_chat () {
     local x
     x=`pidof chat 2>/dev/null`
     (( ${#x} > 0 ))
 }
-
+# --
+# ABORT
 abort () {
     for prog in chat pppd pppon
     do
