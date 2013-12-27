@@ -11,19 +11,10 @@ NAME_ERROR=-1
 # == FUNCIONES ==
 
 # Comprobar si se está ejecutando un script
-PIDDIR=${HOME}/.local/var/run
-PIDFILE=${PIDDIR}/ppp-on.sh_is_running
-
-on () {
-    touch $PIDFILE 2>/dev/null
-}
-
-off () {
-    rm -f $PIDFILE 2>/dev/null
-}
-
 hay_un_script () {
-    [[ -e $PIDFILE ]]
+    local x
+    x=`pidof pppon 2>/dev/null`
+    (( ${#x} > 0 ))
 }
 
 # -- MODEM --
@@ -76,19 +67,16 @@ case $name in
         modem_offline && exit $OFFLINE
         modem_ocupado && exit $BUSY
 
-        on
         until hay_conexion
         do
             killall pppd && sleep 1
             pon provider && sleep 1
             while hay_un_chat; do sleep 5; done
         done
-        off
         ;;
 
     "pppoff")
 
-        off
         hay_un_chat && { abort; exit $ABORT; }
         hay_conexion && poff -a
         killall pppon
