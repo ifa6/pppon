@@ -55,6 +55,22 @@ abort () {
     done
 } 2>/dev/null
 
+
+IPLOGFILE=$HOME/.local/var/log/myip
+
+getIPs () {
+    sudo cat /var/log/messages | grep 'pppd\['`pidof pppd`'\]:.*address'
+}
+
+logIPs () {
+    echo "--------------------------------------"
+    getIPs | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'
+    echo "==============="
+    getIPs | sed '{ s/.*\]://; s/IP/   IP /; }'
+    echo "--------------------------------------"
+}
+
+
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 name=`basename $0`
@@ -73,6 +89,9 @@ case $name in
             pon provider && sleep 1
             while hay_un_chat; do sleep 5; done
         done
+
+        logIPs >> $IPLOGFILE
+
         ;;
 
     "pppoff")
