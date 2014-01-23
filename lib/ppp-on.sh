@@ -1,16 +1,15 @@
 #! /bin/bash -x
 
 # Códigos de terminación
-OK=0
-SCRIPT=1
-OFFLINE=2
-BUSY=3
-ABORT=4
-NAME_ERROR=-1
+OK=0             # Todo fue bien
+SCRIPT=1         # Hay otro pppon intentando conectar
+OFFLINE=2        # Modem fuera de línea
+BUSY=3           # Modem ocupado
+ABORT=4          # Se activa pppoff cuando pppon ejecutaba un chat
+NAME_ERROR=-1    # Sólo se puede llamar como pppon o pppoff
 
-# == FUNCIONES ==
-
-# Comprobar si se está ejecutando un script
+# ==== >>> FUNCIONES <<<
+# Comprobar si se está ejecutando un pppon
 hay_un_script () {
     local x
     x=`pidof pppon 2>/dev/null`
@@ -54,12 +53,15 @@ abort () {
         killall $prog
     done
 } 2>/dev/null
-
-
+# --
+# -- MYIP --
+# logear las direcciones IP local y remota así como las direcciones
+# de los DNS primario y secundario.
 IPLOGFILE=$HOME/.local/var/log/myip
 
 getIPs () {
-    sudo cat /var/log/messages | grep 'pppd\['`pidof pppd`'\]:.*address'
+    sudo cat /var/log/messages \
+        | grep 'pppd\['`pidof pppd`'\]:.*address'
 }
 
 logIPs () {
@@ -68,10 +70,9 @@ logIPs () {
     echo "==============="
     getIPs | sed '{ s/.*\]://; s/IP/   IP /; }'
     echo "--------------------------------------"
-}
-
-
-# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+} >> $IPLOGFILE
+# --
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 name=`basename $0`
 
@@ -90,8 +91,7 @@ case $name in
             while hay_un_chat; do sleep 5; done
         done
 
-        logIPs >> $IPLOGFILE
-
+        logIPs
         ;;
 
     "pppoff")
