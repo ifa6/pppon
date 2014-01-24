@@ -1,0 +1,13 @@
+#!/bin/bash
+
+LOCAL=$HOME/.local
+BIN=$LOCAL/bin
+LOG=$LOCAL/var/log
+
+install -d -m 0755 $BIN
+install -d -m 0755 $LOG
+install -m 0744 lib/ppp-on.sh $BIN
+ln -s $BIN/ppp-on.sh $BIN/pppon
+ln -s $BIN/ppp-on.sh $BIN/pppoff
+
+

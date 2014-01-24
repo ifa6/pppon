@@ -8,7 +8,7 @@ BUSY=3           # Modem ocupado
 ABORT=4          # Se activa pppoff cuando pppon ejecutaba un chat
 NAME_ERROR=-1    # Sólo se puede llamar como pppon o pppoff
 
-# ==== >>> FUNCIONES <<<
+# >>> FUNCIONES <<<
 # Comprobar si se está ejecutando un pppon
 hay_un_script () {
     local x
@@ -16,37 +16,37 @@ hay_un_script () {
     (( ${#x} > 0 ))
 }
 
-# -- MODEM --
+# **MODEM**
 # Los mensajes que emite wvdial cuando tantea el estado del modem
 MODEM_OFFLINE="Modem not responding"
-MODEM_BUSY="Device or resource busy"
-
 modem_offline () {
     local x
     x=`wvdial 2>&1 | grep "$MODEM_OFFLINE"`
     (( ${#x} > 0 ))
 }
 
+MODEM_BUSY="Device or resource busy"
 modem_ocupado () {
     local x
     x=`wvdial 2>&1 | grep "$MODEM_BUSY"`
     (( ${#x} > 0 ))
 }
 # --
-# Saber si hay una conexión en curso o si hay un intento de conectar.
+# Saber si hay una conexión activa.
 hay_conexion () {
     local x
     x=`/sbin/ifconfig ppp0 2>/dev/null`
     (( ${#x} > 0 ))
 }
 
+# Saber si hay un intento de conexión en curso.
 hay_un_chat () {
     local x
     x=`pidof chat 2>/dev/null`
     (( ${#x} > 0 ))
 }
 # --
-# ABORT
+# cuando activamos pppoff y hay un chat en curso
 abort () {
     for prog in chat pppd pppon
     do
@@ -54,16 +54,15 @@ abort () {
     done
 } 2>/dev/null
 # --
-# -- MYIP --
+# **MYIP**
 # logear las direcciones IP local y remota así como las direcciones
 # de los DNS primario y secundario.
-IPLOGFILE=$HOME/.local/var/log/myip
-
 getIPs () {
     sudo cat /var/log/messages \
         | grep 'pppd\['`pidof pppd`'\]:.*address'
 }
 
+IPLOGFILE=$HOME/.local/var/log/myip
 logIPs () {
     echo "--------------------------------------"
     getIPs | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'
