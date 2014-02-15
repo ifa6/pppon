@@ -73,24 +73,15 @@ abort () {
         killall $prog
     done
 } 2>/dev/null
-# --
+# -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 # **MYIP**
 # logear las direcciones IP local y remota así como las direcciones
 # de los DNS primario y secundario.
-getIPs () {
-    sudo cat /var/log/messages \
-        | grep 'pppd\['`pidof pppd`'\]:.*address'
+MYIPLIB=$HOME/.local/lib/myip.lib
+logips () {
+    source $MYIPLIB
+    logIPs
 }
-
-IPLOGFILE=$HOME/.local/var/log/myip
-logIPs () {
-    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    getIPs | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'
-    echo "==============="
-    getIPs | sed '{ s/.*\]://; s/IP/   IP /; }'
-    echo "--------------------------------------"
-} >> $IPLOGFILE
-# --
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 name=`basename $0`
@@ -110,7 +101,7 @@ case $name in
             while hay_un_chat; do sleep 5; done
         done
 
-        logIPs
+        logips
         ;;
 
     "pppoff")
@@ -120,7 +111,12 @@ case $name in
         killall pppon
         ;;
 
-    *) echo "el script sólo puede ser invocado como 'pppon' o como 'pppoff'"
+    "myip")
+
+        logips
+        ;;
+
+    *) echo "el script sólo puede ser invocado como 'pppon', 'pppoff' o 'myip'."
        exit $NAME_ERROR
        ;;
 

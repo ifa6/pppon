@@ -1,13 +1,17 @@
 #!/bin/bash
 
 LOCAL=$HOME/.local
+
 BIN=$LOCAL/bin
+LIB=$LOCAL/lib
 LOG=$LOCAL/var/log
+TMP=$LOCAL/tmp
 
 install -d -m 0755 $BIN
 install -d -m 0755 $LOG
+install -d -m 0755 $TMP
 install -m 0744 lib/ppp-on.sh $BIN
+install -m 0644 lib/myip.lib $LIB
+ln -s $BIN/ppp-on.sh $BIN/myip
 ln -s $BIN/ppp-on.sh $BIN/pppon
 ln -s $BIN/ppp-on.sh $BIN/pppoff
-
-

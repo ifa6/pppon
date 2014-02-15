@@ -1,0 +1,48 @@
+
+# **MYIP**
+# logear las direcciones IP local y remota así como las direcciones
+# de los DNS primario y secundario.
+
+# ~~
+TMPDIR=$HOME/.local/tmp
+TMPFILE=$(mktemp --tmpdir=$TMPDIR)
+
+# ~~
+# LOGFILE y _getlogs se redefinen en caso de test.
+LOGFILE=$HOME/.local/var/log/myip
+_getlogs() {
+    sudo cat /var/log/messages | grep 'pppd\['`pidof pppd`'\]:.*address'
+}
+
+# ~~
+sizeof () { ls -l $1 | cut --d=' ' -f5; }
+estavacio () { (( `sizeof $1` == 0 )); }
+
+# ~~
+getlogs () {
+    _getlogs > $TMPFILE
+    ! estavacio $TMPFILE
+}
+
+getIPs () { cat $TMPFILE | sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
+
+header () {
+    local fecha=$( cat $TMPFILE | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/')
+    local pf=`basename $0`': '$fecha
+    echo $pf
+    echo $pf | tr [:print:] '='
+}
+
+printlogs () {
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    header
+    getIPs
+    echo "--------------------------------------"
+} >> $LOGFILE
+
+# ~~
+logIPs () {
+    getlogs && printlogs
+    rm $TMPFILE
+}
+# ~~
