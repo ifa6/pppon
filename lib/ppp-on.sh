@@ -1,5 +1,25 @@
 #! /bin/bash -x
 
+# ------------------------------------------------------------------------------
+#    pppon - Gestiona la conexión con el ISP usando un modem y pppd.
+#
+#    Copyright (C) 2013, 2014 José Lorenzo Nieto Corral.
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# ------------------------------------------------------------------------------
+
+
 # Códigos de terminación
 OK=0             # Todo fue bien
 SCRIPT=1         # Hay otro pppon intentando conectar
@@ -64,7 +84,7 @@ getIPs () {
 
 IPLOGFILE=$HOME/.local/var/log/myip
 logIPs () {
-    echo "--------------------------------------"
+    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     getIPs | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'
     echo "==============="
     getIPs | sed '{ s/.*\]://; s/IP/   IP /; }'
