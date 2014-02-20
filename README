@@ -1,4 +1,8 @@
 PPPON
 =====
 
-pppon es un script para conectar con internet usando ppp
+La principal finalidad de pppon es conectar con internet usando ppp.
+
+Además logea las direcciones ip de la conexión y suministra un conjunto
+de scripts que permiten listar las direcciones de las últimas conexiones.
+

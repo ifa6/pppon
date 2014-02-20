@@ -1,4 +1,4 @@
-#! /bin/bash -x
+#! /bin/bash
 
 # ------------------------------------------------------------------------------
 #    pppon - Gestiona la conexión con el ISP usando un modem y pppd.
@@ -77,10 +77,22 @@ abort () {
 # **MYIP**
 # logear las direcciones IP local y remota así como las direcciones
 # de los DNS primario y secundario.
-MYIPLIB=$HOME/.local/lib/myip.lib
+MYIPLIB=myip.lib
 logips () {
     source $MYIPLIB
     logIPs
+}
+echoips () {
+    source $MYIPLIB
+    echoIPs
+}
+allips () {
+    source $MYIPLIB
+    allIPs
+}
+lastips () {
+    source $MYIPLIB
+    lastIPs "$@"
 }
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -113,10 +125,24 @@ case $name in
 
     "myip")
 
-        logips
+        echoips
         ;;
 
-    *) echo "el script sólo puede ser invocado como 'pppon', 'pppoff' o 'myip'."
+    "allips")
+
+        allips
+        ;;
+
+    "lastips")
+
+        lastips "$@"
+        ;;
+
+    *) cat <<@
+ El script sólo puede ser invocado como:
+
+    'pppon', 'pppoff', 'myip', 'allips' o 'lastips'.
+@
        exit $NAME_ERROR
        ;;
 

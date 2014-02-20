@@ -5,44 +5,73 @@
 
 # ~~
 TMPDIR=$HOME/.local/tmp
-TMPFILE=$(mktemp --tmpdir=$TMPDIR)
-
-# ~~
-# LOGFILE y _getlogs se redefinen en caso de test.
 LOGFILE=$HOME/.local/var/log/myip
-_getlogs() {
-    sudo cat /var/log/messages | grep 'pppd\['`pidof pppd`'\]:.*address'
-}
-
 # ~~
 sizeof () { ls -l $1 | cut --d=' ' -f5; }
 estavacio () { (( `sizeof $1` == 0 )); }
-
-# ~~
-getlogs () {
-    _getlogs > $TMPFILE
-    ! estavacio $TMPFILE
-}
-
-getIPs () { cat $TMPFILE | sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
-
-header () {
-    local fecha=$( cat $TMPFILE | head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/')
-    local pf=`basename $0`': '$fecha
-    echo $pf
-    echo $pf | tr [:print:] '='
-}
-
-printlogs () {
-    echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-    header
-    getIPs
-    echo "--------------------------------------"
-} >> $LOGFILE
-
+getallIPs () { grep 'pppd\[[0-9]\+\]:.*address'; }
+getcurIPs () { grep 'pppd\['`pidof pppd`'\]:.*address'; }
+getdate () { head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'; }
+getIPs () { sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
 # ~~
 logIPs () {
-    getlogs && printlogs
+    TMPFILE=$(mktemp --tmpdir=$TMPDIR)
+    sudo cat /var/log/messages | getcurIPs > $TMPFILE
+    ! estavacio $TMPFILE && {
+        echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+        local H=`basename $0`': '`cat $TMPFILE | getdate`
+        echo $H
+        echo $H | tr [:print:] '='
+        cat $TMPFILE | getIPs
+        echo "--------------------------------------"
+    } >> $LOGFILE
     rm $TMPFILE
+}
+# ~~
+echoIPs () {
+    TMPFILE=$(mktemp --tmpdir=$TMPDIR)
+    sudo cat /var/log/messages | getcurIPs > $TMPFILE
+    ! estavacio $TMPFILE && {
+        cat $TMPFILE | getdate
+        cat $TMPFILE | getIPs
+    }
+    rm $TMPFILE
+}
+# ~~
+allIPs () {
+    cd $TMPDIR
+    for MSG in `ls /var/log/messages* | sort -r`
+    do
+        PREFIX=$(echo `basename $MSG` | sed 's/\./_/g')'-'
+        [ -n "$(sudo gzip -t $MSG 2>&1)" ] && CAT="sudo cat" || CAT="sudo gzip -cd"
+        $CAT $MSG | getallIPs | split -d -l4 - $PREFIX
+        for TFILE in $(ls -1 | grep ${PREFIX})
+        do
+            cat $TFILE | getdate
+            cat $TFILE | getIPs
+            echo "--8<----------------------------------"
+            rm $TFILE
+        done
+    done
+}
+# ~~
+lastIPs () {
+    (( $# == 0 )) && N=2 || N=$1
+    cd $TMPDIR
+    I=0
+    for MSG in `ls /var/log/messages* | sort`
+    do
+        PREFIX=$(echo `basename $MSG` | sed 's/\./_/g')'-'
+        [ -n "$(sudo gzip -t $MSG 2>&1)" ] && CAT="sudo cat" || CAT="sudo gzip -cd"
+        $CAT $MSG | getallIPs | split -d -l4 - $PREFIX
+        for TFILE in $(ls -1 | grep ${PREFIX} | sort -r)
+        do
+            cat $TFILE | getdate
+            cat $TFILE | getIPs
+            echo "--8<----------------------------------"
+            rm $TFILE
+            (( ++I == N )) && break 2
+        done
+    done
 }
 # ~~
