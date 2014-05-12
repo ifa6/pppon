@@ -77,7 +77,7 @@ abort () {
 # **MYIP**
 # logear las direcciones IP local y remota así como las direcciones
 # de los DNS primario y secundario.
-MYIPLIB=myip.lib
+MYIPLIB=$HOME/.local/lib/myip.lib
 logips () {
     source $MYIPLIB
     logIPs

@@ -4,7 +4,7 @@
 # de los DNS primario y secundario.
 
 # ~~
-TMPDIR=$HOME/.local/tmp
+TMPDIR=$(mktemp -d --tmpdir=$HOME/.local/tmp/ myip.XXXX)
 LOGFILE=$HOME/.local/var/log/myip
 # ~~
 sizeof () { ls -l $1 | cut --d=' ' -f5; }
@@ -14,9 +14,15 @@ getcurIPs () { grep 'pppd\['`pidof pppd`'\]:.*address'; }
 getdate () { head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'; }
 getIPs () { sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
 # ~~
+get_true_vlm () {
+    local T=$(mktemp --tmpdir=$TMPDIR)
+    sudo cat /var/log/messages | getcurIPs >> $T
+    estavacio $T && sudo cat /var/log/messages.1 | getcurIPs >> $T
+    echo $T
+}
+# ~~
 logIPs () {
-    TMPFILE=$(mktemp --tmpdir=$TMPDIR)
-    sudo cat /var/log/messages | getcurIPs > $TMPFILE
+    TMPFILE=$(get_true_vlm)
     ! estavacio $TMPFILE && {
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         local H=`basename $0`': '`cat $TMPFILE | getdate`
@@ -29,8 +35,7 @@ logIPs () {
 }
 # ~~
 echoIPs () {
-    TMPFILE=$(mktemp --tmpdir=$TMPDIR)
-    sudo cat /var/log/messages | getcurIPs > $TMPFILE
+    TMPFILE=$(get_true_vlm)
     ! estavacio $TMPFILE && {
         cat $TMPFILE | getdate
         cat $TMPFILE | getIPs
@@ -50,9 +55,9 @@ allIPs () {
             cat $TFILE | getdate
             cat $TFILE | getIPs
             echo "--8<----------------------------------"
-            rm $TFILE
         done
     done
+    rm -R $TMPDIR
 }
 # ~~
 lastIPs () {
@@ -69,9 +74,9 @@ lastIPs () {
             cat $TFILE | getdate
             cat $TFILE | getIPs
             echo "--8<----------------------------------"
-            rm $TFILE
             (( ++I == N )) && break 2
         done
     done
+    rm -R $TMPDIR
 }
 # ~~
