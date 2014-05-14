@@ -4,7 +4,7 @@
 # de los DNS primario y secundario.
 
 # ~~
-TMPDIR=$(mktemp -d --tmpdir=$HOME/.local/tmp/ myip.XXXX)
+TMPDIR=`mktemp -d --tmpdir=$HOME/.local/tmp/ myip.XXXX`
 LOGFILE=$HOME/.local/var/log/myip
 # ~~
 sizeof () { ls -l $1 | cut --d=' ' -f5; }
@@ -15,14 +15,14 @@ getdate () { head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'; }
 getIPs () { sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
 # ~~
 get_true_vlm () {
-    local T=$(mktemp --tmpdir=$TMPDIR)
+    local T=`mktemp --tmpdir=$TMPDIR`
     sudo cat /var/log/messages | getcurIPs >> $T
     estavacio $T && sudo cat /var/log/messages.1 | getcurIPs >> $T
     echo $T
 }
 # ~~
 logIPs () {
-    TMPFILE=$(get_true_vlm)
+    TMPFILE=`get_true_vlm`
     ! estavacio $TMPFILE && {
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         local H=`basename $0`': '`cat $TMPFILE | getdate`
@@ -35,7 +35,7 @@ logIPs () {
 }
 # ~~
 echoIPs () {
-    TMPFILE=$(get_true_vlm)
+    TMPFILE=`get_true_vlm`
     ! estavacio $TMPFILE && {
         cat $TMPFILE | getdate
         cat $TMPFILE | getIPs
@@ -47,10 +47,10 @@ allIPs () {
     cd $TMPDIR
     for MSG in `ls /var/log/messages* | sort -r`
     do
-        PREFIX=$(echo `basename $MSG` | sed 's/\./_/g')'-'
+        PREFIX=`echo $(basename $MSG) | sed 's/\./_/g'`'-'
         [ -n "$(sudo gzip -t $MSG 2>&1)" ] && CAT="sudo cat" || CAT="sudo gzip -cd"
         $CAT $MSG | getallIPs | split -d -l4 - $PREFIX
-        for TFILE in $(ls -1 | grep ${PREFIX})
+        for TFILE in `ls -1 | grep ${PREFIX}`
         do
             cat $TFILE | getdate
             cat $TFILE | getIPs
@@ -66,10 +66,10 @@ lastIPs () {
     I=0
     for MSG in `ls /var/log/messages* | sort`
     do
-        PREFIX=$(echo `basename $MSG` | sed 's/\./_/g')'-'
+        PREFIX=`echo $(basename $MSG) | sed 's/\./_/g'`'-'
         [ -n "$(sudo gzip -t $MSG 2>&1)" ] && CAT="sudo cat" || CAT="sudo gzip -cd"
         $CAT $MSG | getallIPs | split -d -l4 - $PREFIX
-        for TFILE in $(ls -1 | grep ${PREFIX} | sort -r)
+        for TFILE in `ls -1 | grep ${PREFIX} | sort -r`
         do
             cat $TFILE | getdate
             cat $TFILE | getIPs
