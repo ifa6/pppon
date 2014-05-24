@@ -4,7 +4,6 @@
 # de los DNS primario y secundario.
 
 # ~~
-TMPDIR=`mktemp -d --tmpdir=$HOME/.local/tmp/ myip.XXXX`
 LOGFILE=$HOME/.local/var/log/myip
 # ~~
 sizeof () { ls -l $1 | cut --d=' ' -f5; }
@@ -14,8 +13,12 @@ getcurIPs () { grep 'pppd\['`pidof pppd`'\]:.*address'; }
 getdate () { head -n 1 - | sed 's/\(.*:[0-9]\+\).*/\1/'; }
 getIPs () { sed '{ s/^.*\]://; s/IP/   IP /g; }'; }
 # ~~
+make_temp_dir () {
+    echo `mktemp -d --tmpdir=$HOME/.local/tmp/ myip.XXXX`
+}
+
 get_true_vlm () {
-    local T=`mktemp --tmpdir=$TMPDIR`
+    local T=`mktemp --tmpdir=$(make_temp_dir)`
     sudo cat /var/log/messages | getcurIPs >> $T
     estavacio $T && sudo cat /var/log/messages.1 | getcurIPs >> $T
     echo $T
@@ -31,7 +34,7 @@ logIPs () {
         cat $TMPFILE | getIPs
         echo "--------------------------------------"
     } >> $LOGFILE
-    rm $TMPFILE
+    rm -R `dirname $TMPFILE`
 }
 # ~~
 echoIPs () {
@@ -40,10 +43,11 @@ echoIPs () {
         cat $TMPFILE | getdate
         cat $TMPFILE | getIPs
     }
-    rm $TMPFILE
+    rm -R `dirname $TMPFILE`
 }
 # ~~
 allIPs () {
+    TMPDIR=`make_temp_dir`
     cd $TMPDIR
     for MSG in `ls /var/log/messages* | sort -r`
     do
@@ -62,6 +66,7 @@ allIPs () {
 # ~~
 lastIPs () {
     (( $# == 0 )) && N=2 || N=$1
+    TMPDIR=`make_temp_dir`
     cd $TMPDIR
     I=0
     for MSG in `ls /var/log/messages* | sort`
